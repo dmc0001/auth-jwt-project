@@ -1,0 +1,78 @@
+# ---------------------------
+# GO PROJECT IGNORE RULES
+# ---------------------------
+
+# Binaries and compiled output
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+*.log
+
+# Go build directories
+/bin/
+/build/
+/dist/
+/out/
+
+# Go cache and coverage
+__debug_bin
+*.prof
+*.pprof
+*.cover
+*.cov
+coverage.out
+coverage/
+*.coverprofile
+
+# Go workspace
+go.work
+go.work.sum
+
+# ---------------------------
+# ENV & CONFIG FILES
+# ---------------------------
+.env
+.env.*
+!example.env  # keep a sample env for others
+
+# ---------------------------
+# DATABASE FILES & MIGRATIONS
+# ---------------------------
+*.db
+*.sqlite
+migrations/*.sql~
+migrations/*.bak
+debug/
+tmp/
+temp/
+logs/
+
+# ---------------------------
+# IDE & SYSTEM FILES
+# ---------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ---------------------------
+# DEPENDENCY DIRECTORIES
+# ---------------------------
+vendor/
+
+# ---------------------------
+# TEST OUTPUTS
+# ---------------------------
+*.testresult
+*.tmp
+*.bak
+
+# ---------------------------
+# VSCode Local History
+# ---------------------------
+.history/
