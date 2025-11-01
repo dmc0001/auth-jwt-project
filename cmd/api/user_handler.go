@@ -5,26 +5,23 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dmc0001/auth-jwt-project/internal/auth"
 	"github.com/dmc0001/auth-jwt-project/internal/types"
 	"github.com/dmc0001/auth-jwt-project/internal/utils"
 )
 
 func (app *Application) getUser(w http.ResponseWriter, r *http.Request) {
-	param := r.PathValue("param")
 
+	param := r.PathValue("param")
 	if strings.Contains(param, "@") {
-		// treat as email
 		app.getUserByEmail(w, param)
 		return
 	}
-
-	// else treat as ID
 	id, err := strconv.Atoi(param)
 	if err != nil {
 		utils.WritingError(w, http.StatusBadRequest, err)
 		return
 	}
-
 	app.getUserById(w, id)
 
 }
@@ -43,6 +40,7 @@ func (app *Application) getUserByEmail(w http.ResponseWriter, email string) {
 	}
 
 }
+
 func (app *Application) getUserById(w http.ResponseWriter, id int) {
 
 	user, err := app.config.userModel.GetUserById(id)
@@ -55,11 +53,10 @@ func (app *Application) getUserById(w http.ResponseWriter, id int) {
 	if err != nil {
 		utils.WritingError(w, http.StatusInternalServerError, err)
 	}
-
 }
 
 func (app *Application) loginUser(w http.ResponseWriter, r *http.Request) {
-	// get user payload
+
 	var loginCredentials types.LoginUserRequest
 	err := utils.ParsingFromJson(r, &loginCredentials)
 	if err != nil {
@@ -70,7 +67,22 @@ func (app *Application) loginUser(w http.ResponseWriter, r *http.Request) {
 		utils.WritingError(w, http.StatusBadRequest, err)
 		return
 	}
-	utils.ParsingToJson(w, http.StatusOK, &user)
+	secret := []byte(app.config.JwtSecret)
+	AccessToken, err := auth.CreateJwt([]byte(secret), user.Id, app.config.JwtExpiretionInSeconds)
+	if err != nil {
+		utils.WritingError(w, http.StatusInternalServerError, err)
+	}
+	response := types.LoginUserResponse{
+		Id:          user.Id,
+		FirstName:   user.FirstName,
+		LastName:    user.LastName,
+		Email:       user.Email,
+		PhoneNumber: user.PhoneNumber,
+		AccessToken: AccessToken,
+		CreatedAt:   user.CreatedAt,
+	}
+
+	utils.ParsingToJson(w, http.StatusOK, &response)
 }
 
 func (app *Application) registerUser(w http.ResponseWriter, r *http.Request) {
@@ -90,5 +102,4 @@ func (app *Application) registerUser(w http.ResponseWriter, r *http.Request) {
 	utils.ParsingToJson(w, http.StatusCreated, map[string]string{
 		"message": "✅ User registered successfully",
 	})
-
 }

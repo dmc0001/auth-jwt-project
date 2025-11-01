@@ -1,4 +1,4 @@
-MIGRATIONS_DIR=./migrations/up
+MIGRATIONS_DIR=./migrations
 
 migrate-up:
 	source .env && goose -dir $(MIGRATIONS_DIR) mysql "$$DB_DSN" up

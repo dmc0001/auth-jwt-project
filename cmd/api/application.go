@@ -7,9 +7,12 @@ import (
 )
 
 type Config struct {
-	addr      string
-	db        *sql.DB
-	userModel types.UserStore
+	addr                   string
+	db                     *sql.DB
+	userModel              types.UserStore
+	productModel           types.ProductStore
+	JwtExpiretionInSeconds int
+	JwtSecret              string
 }
 
 type Application struct {

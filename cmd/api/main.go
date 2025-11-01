@@ -19,6 +19,8 @@ func main() {
 		env.GetString("DB_PORT", "3306"),
 		env.GetString("DB_NAME", "name_db"),
 	)
+	expiration := env.GetInt("JWT_EXPIRATION", 3600*24*7)
+	secret := env.GetString("JWT_SECRET", "secret")
 
 	port := env.GetString("PORT", ":80")
 
@@ -29,8 +31,11 @@ func main() {
 	defer db.Close()
 
 	cfg := &Config{
-		addr:      port,
-		userModel: store.NewUserModel(db),
+		addr:                   port,
+		userModel:              store.NewUserModel(db),
+		productModel:           store.NewProductModel(db),
+		JwtExpiretionInSeconds: expiration,
+		JwtSecret:              secret,
 	}
 
 	app := &Application{
