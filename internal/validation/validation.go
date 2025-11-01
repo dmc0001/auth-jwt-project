@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/dmc0001/auth-jwt-project/internal/types"
@@ -15,7 +16,7 @@ var emailRx = regexp.MustCompile(`^[A-Za-z0-9._%+\-']+@[A-Za-z0-9.\-]+\.[A-Za-z]
 // var passwordRx = regexp.MustCompile(`^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$`)
 var phoneNumberRx = regexp.MustCompile(`^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$`)
 
-func ValidateRegisterUser(req types.RegisterUserRequest) (*types.RegisterUserRequest, error) {
+func ValidateRegisterUser(req *types.RegisterUserRequest) (*types.RegisterUserRequest, error) {
 
 	first := strings.TrimSpace(req.FirstName)
 	last := strings.TrimSpace(req.LastName)
@@ -52,9 +53,46 @@ func ValidateRegisterUser(req types.RegisterUserRequest) (*types.RegisterUserReq
 		PhoneNumber:     phone,
 		Password:        req.Password,
 		ConfirmPassword: req.ConfirmPassword,
+		CreatedAt:       time.Now(),
 	}
 
 	return clean, err
+}
+func ValidateCreateProduct(req *types.CreateProductRequest) (*types.Product, error) {
+	name := strings.TrimSpace(req.Name)
+	description := strings.TrimSpace(req.Description)
+	image := strings.TrimSpace(req.Image)
+	price := req.Price
+	quantity := req.Quantity
+
+	if name == "" {
+		return nil, fmt.Errorf("Product name is required")
+	}
+	if description == "" {
+		return nil, fmt.Errorf("Description is required")
+	}
+
+	if req.Image == "" {
+		return nil, fmt.Errorf("Image cannot be empty — set a valid image URL or null")
+	}
+	if price <= 0 {
+		price = 0.0
+	}
+
+	if quantity <= 0 {
+		quantity = 0
+	}
+
+	product := &types.Product{
+		Name:        name,
+		Description: description,
+		Image:       image,
+		Price:       price,
+		Quantity:    quantity,
+		CreatedAt:   time.Now(),
+	}
+
+	return product, nil
 }
 
 func ValidateLoginUser(req types.LoginUserRequest) (*types.LoginUserRequest, error) {

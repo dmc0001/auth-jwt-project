@@ -23,7 +23,7 @@ func NewUserModel(db *sql.DB) (userModel *UserModel) {
 func (u *UserModel) GetUserByEmailWithPassword(email string) (*types.User, error) {
 	user := &types.User{}
 	const q = `
-		SELECT id, first_name, last_name, email, phone_number, password
+		SELECT id, first_name, last_name, email, phone_number, password, created_at
 		FROM users
 		WHERE email = ?
 		LIMIT 1;
@@ -36,6 +36,7 @@ func (u *UserModel) GetUserByEmailWithPassword(email string) (*types.User, error
 		&user.Email,
 		&user.PhoneNumber,
 		&user.Password,
+		&user.CreatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -49,7 +50,7 @@ func (u *UserModel) GetUserByEmailWithPassword(email string) (*types.User, error
 func (u *UserModel) GetUserByEmail(email string) (*types.GetUserByEmailResponse, error) {
 	user := &types.GetUserByEmailResponse{}
 	const q = `
-		SELECT id, first_name, last_name, email, phone_number
+		SELECT id, first_name, last_name, email, phone_number, created_at
 		FROM users
 		WHERE email = ?
 		LIMIT 1;
@@ -61,6 +62,7 @@ func (u *UserModel) GetUserByEmail(email string) (*types.GetUserByEmailResponse,
 		&user.LastName,
 		&user.Email,
 		&user.PhoneNumber,
+		&user.CreatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -74,7 +76,7 @@ func (u *UserModel) GetUserByEmail(email string) (*types.GetUserByEmailResponse,
 func (u *UserModel) GetUserById(id int) (*types.GetUserByEmailResponse, error) {
 	user := &types.GetUserByEmailResponse{}
 	const q = `
-		SELECT id, first_name, last_name, email, phone_number
+		SELECT id, first_name, last_name, email, phone_number, created_at
 		FROM users
 		WHERE id = ?
 		LIMIT 1;
@@ -86,6 +88,7 @@ func (u *UserModel) GetUserById(id int) (*types.GetUserByEmailResponse, error) {
 		&user.LastName,
 		&user.Email,
 		&user.PhoneNumber,
+		&user.CreatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -102,23 +105,24 @@ func (u *UserModel) RegisterUser(payload types.RegisterUserRequest) error {
 		return fmt.Errorf("User already exists")
 	}
 
-	_, err = validation.ValidateRegisterUser(payload)
+	validUser, err := validation.ValidateRegisterUser(&payload)
 	if err != nil {
 		return err
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(payload.Password), 12)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(validUser.Password), 12)
 	if err != nil {
 		return err
 	}
-	q := "INSERT INTO users (first_name, last_name, email, phone_number, password) VALUES (?, ?, ?, ?, ?)"
+	q := "INSERT INTO users (first_name, last_name, email, phone_number, password,created_at) VALUES (?, ?, ?, ?, ?, ?)"
 
 	u.Db.Exec(q,
-		payload.FirstName,
-		payload.LastName,
-		payload.Email,
-		payload.PhoneNumber,
+		validUser.FirstName,
+		validUser.LastName,
+		validUser.Email,
+		validUser.PhoneNumber,
 		hashedPassword,
+		validUser.CreatedAt,
 	)
 
 	return nil
@@ -138,13 +142,14 @@ func (u *UserModel) LoginUser(payload types.LoginUserRequest) (*types.LoginUserR
 	if err != nil {
 		return nil, fmt.Errorf("Invalid email or password")
 	}
+
 	return &types.LoginUserResponse{
-		Id:           user.Id,
-		FirstName:    user.FirstName,
-		LastName:     user.LastName,
-		Email:        user.Email,
-		PhoneNumber:  user.PhoneNumber,
-		AccessToken:  "",
-		RefreshToken: "",
+		Id:          user.Id,
+		FirstName:   user.FirstName,
+		LastName:    user.LastName,
+		Email:       user.Email,
+		PhoneNumber: user.PhoneNumber,
+		AccessToken: "",
+		CreatedAt:   user.CreatedAt,
 	}, nil
 }
